@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kade_ledger/core/router/app_router.dart';
 import 'package:kade_ledger/core/theme/app_theme.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   runApp(const ProviderScope(child: KadeLedgerApp()));
