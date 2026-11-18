@@ -24,6 +24,7 @@ Currency: Sri Lankan rupees (LKR). Languages: English first, Sinhala later.
 | Local database | `drift` with SQLite (plus `drift_dev` and `build_runner`) |
 | IDs | `uuid` (v4) |
 | Formatting | `intl` |
+| Material widgets | `material_ui` (see import rule below) |
 | Charts (phase 2) | `fl_chart` |
 | PDF and share (phase 4) | `pdf`, `printing`, `share_plus` |
 | Notifications (phase 4) | `flutter_local_notifications` |
@@ -35,6 +36,7 @@ Rules about packages:
 - **Do not add any package that is not in this table** without asking and getting a yes.
 - **Never guess package versions or APIs from memory.** Before adding a package, check its current page on pub.dev and its official docs, and follow the current setup steps. Use `flutter pub add <package>` so the latest compatible version is chosen.
 - Do not use `freezed`, `json_serializable`, `bloc`, `provider`, `get`, `getx`, `hive`, `isar` or `sqflite`.
+- **Material import rule:** import Material widgets from `package:material_ui/material_ui.dart`. **Never** import `package:flutter/material.dart` (deprecated since Flutter 3.47).
 - Use null safety and modern Dart (records and pattern matching are fine where they make code clearer).
 
 ---
@@ -50,7 +52,7 @@ lib/
   features/
     customers/
       presentation/   screens, widgets, Riverpod notifiers/providers
-      domain/         entities (plain immutable Dart classes), repository interfaces
+      domain/         entities (plain immutable Dart classes), use cases, repository interfaces
       data/           Drift tables/DAOs mapping, repository implementations
     transactions/
     items/
@@ -66,7 +68,7 @@ Layer rules:
 1. **Presentation** never imports Drift, Supabase or any data-layer file. It talks only to Riverpod providers that expose repository interfaces.
 2. **Domain** is plain Dart. No Flutter imports, no Drift imports.
 3. **Data** implements the domain repository interfaces. Drift types must not leak outside the data layer. Map them to domain entities.
-4. **Business logic** (balance calculation, totals, validation) lives in the domain layer or in repositories, **never inside widgets**.
+4. **Business logic** (balance calculation, totals, validation) lives in the domain layer or in repositories, **never inside widgets**. Domain **use cases** are for **writes that carry business rules** (for example `AddCustomer`, `RecordCredit`, `RecordPayment`); they are small plain Dart classes that validate inputs and depend only on repository interfaces. Simple reads (such as listing customers or watching a balance) may go through a repository provider directly—do not create one-line pass-through use case classes.
 5. One screen = one file for the screen, with reusable widgets in separate files. No file over about 300 lines; split it.
 6. Dependencies are provided through Riverpod providers. No global singletons.
 
@@ -106,7 +108,10 @@ The local Drift database is the **only source of truth for the UI**. The UI read
 | Phase | Scope |
 |---|---|
 | 0 | Project setup, folders, lints, Git, CI skeleton |
-| 1 | Customers, transactions, balance (local only) |
+| 1a | Design document (`docs/DESIGN.md`) and architecture rules updates |
+| 1b | Drift database, customer domain/data layers, `AddCustomer` use case, unit tests (no UI) |
+| 1c | Customer list screen and customer form, search, validation, routes, widget tests |
+| 1d | Transactions entity/repository, `RecordCredit`/`RecordPayment` use cases, balance, customer detail screen, tests |
 | 2 | Items and dashboard |
 | 3 | Supabase auth and sync |
 | 4 | PDF statements, reminders, Sinhala |
